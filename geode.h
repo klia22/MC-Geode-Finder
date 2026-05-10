@@ -1,6 +1,7 @@
 #include <bits/stdc++.h>
 #include <optional>
 using namespace std;
+#ifndef GEODE_H
 #define GEODE_H
 static inline uint64_t rotl64(uint64_t x, int r);
 
@@ -32,3 +33,6 @@ struct GeodeResult {
 };
 
 static inline optional<GeodeResult> findGeode(uint64_t worldSeed, int chunkX, int chunkZ);
+
+bool isGeode(uint64_t ws, int cx, int cz);
+#endif
