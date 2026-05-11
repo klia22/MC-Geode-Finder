@@ -4,7 +4,10 @@
 #include <atomic>
 #include "geode.h"
 using namespace std;
-
+/*
+Finder1.cpp:
+Searches for seeds with at least 8 geodes in the first 9 chunks.
+*/
 mutex cout_mutex;
 atomic<long long> total_checked(0);
 atomic<long long> last_reported(0);

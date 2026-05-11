@@ -1,8 +1,5 @@
 #include "geode.h"
-
-static inline uint64_t rotl64(uint64_t x, int r) {
-    return (x << r) | (x >> (64 - r));
-}
+#include <cstdint>
 
 void JavaRandom::setSeed(uint64_t value) {
     const uint64_t XL = 0x9e3779b97f4a7c15ULL;
@@ -65,53 +62,7 @@ uint64_t JavaRandom::nextLongJ() {
     return ((uint64_t)a << 32) + b;
 }
 
-static inline uint64_t getPopulationSeed(uint64_t ws, int x, int z) {
-    JavaRandom xr;
-    xr.setSeed(ws);
-    uint64_t a = xr.nextLongJ();
-    uint64_t b = xr.nextLongJ();
-    a |= 1ULL;
-    b |= 1ULL;
-    return (static_cast<uint64_t>(x) * a + static_cast<uint64_t>(z) * b) ^ ws;
-}
-
-static inline optional<GeodeResult> findGeode(uint64_t worldSeed, int chunkX, int chunkZ) {
-    const uint64_t salt = 20002ULL;
-    const float rarity = 1.0f / 24.0f;
-    int blockX = chunkX * 16;
-    int blockZ = chunkZ * 16;
-    int regionX = blockX & ~15;
-    int regionZ = blockZ & ~15;
-
-    JavaRandom xr;
-    xr.setSeed(getPopulationSeed(worldSeed, regionX, regionZ) + salt);
-    if (xr.nextFloat() >= rarity) {
-        return nullopt;
-    }
-
-    int rx = xr.nextIntJ(16);
-    int rz = xr.nextIntJ(16);
-    rx -= blockX & 15;
-    rz -= blockZ & 15;
-    int ry = xr.nextIntJ(89) - 58;
-    int size = xr.nextIntJ(2) + 3;
-    xr.skipN(2);
-    bool cracked = xr.nextFloat() < 0.95f;
-
-    rx += 4;
-    ry += 4;
-    rz += 4;
-
-    GeodeResult result;
-    result.worldX = regionX + rx;
-    result.worldY = ry;
-    result.worldZ = regionZ + rz;
-    result.size = size;
-    result.cracked = cracked;
-    return result;
-}
-
-bool isGeode(uint64_t ws, int cx, int cz) {
+bool isGeode(uint64_t ws, int cx, int cz, uint64_t popseed = 0) {
     const uint64_t salt = 20002ULL;
     const float rarity = 1.0f / 24.0f;
     int blockX = cx * 16;
@@ -119,7 +70,11 @@ bool isGeode(uint64_t ws, int cx, int cz) {
     int regionX = blockX & ~15;
     int regionZ = blockZ & ~15;
     JavaRandom xr;
-    xr.setSeed(getPopulationSeed(ws, regionX, regionZ) + salt);
+    if (popseed == 0) {
+        xr.setSeed(getPopulationSeed(ws, regionX, regionZ) + salt);
+    } else {
+        xr.setSeed(popseed + salt);
+    }
     if (xr.nextFloat() >= rarity) {
         return false;
     }
